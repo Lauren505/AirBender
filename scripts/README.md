@@ -11,10 +11,8 @@ This program generates a randomized g-code script for an individual user
 ```
 AirBender
 │   README.md
-│ 
 └───scripts
 │   │   generate_gcode.py
-│   │
 │   └───gcodes
 │   └───orders
 ```

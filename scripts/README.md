@@ -8,20 +8,30 @@ This program generates a randomized g-code script for an individual user
 
 ## DIRECTORY:
 
-gcodes/   output gcode files
-orders/  output order files
-generate_gcode.py
-README
+```
+AirBender
+│   README.md
+│ 
+└───scripts
+│   │   generate_gcode.py
+│   │
+│   └───gcodes
+│   └───orders
+```
 
 ## USAGE:
 
+```sh
 python3 generate_gcode.py -idx <user index> -a <pointA coordinate(x,y)> -b <pointB coordinate(x,y)> -c <pointC coordinate(x,y)> -d <pointD coordinate(x,y)> -e <pointE coordinate(x,y)>
+```
 	
 For example,
 if you want to generate the gcode file for user #6, 
 under scripts directory, run
 
+```sh
 python3 generate_gcode.py -idx 6 -a 50 60 -b 40 50 -c 50 40 -d 60 50 -e 50 50
+```
 
 #### Note: fill in the coordinate fields with the exact positions of the five focal points you measured earlier.
 #### Note: you can change the suffix for the output file by args '-gcode_out' and '-order_out'.

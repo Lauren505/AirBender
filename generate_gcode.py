@@ -6,7 +6,7 @@ user_index = 0
 coordinates = {'A': [50,50], 'B': [50,50], 'C': [50,50], 'D': [50,50], 'E': [50,50]}
 focal_points = ['A', 'B', 'C', 'D', 'E']
 angle_of_incidence = ['0', '30', '60']
-directions = ['S', 'SW', 'W', 'NW', 'N', 'NE', 'E', 'SE']
+directions = ['0', '15', '30', '45', '60', '75', '90', '105', '120', '135', '150', '165', '180', '195', '210', '225', '240', '255', '270', '285', '300', '315', '330', '345']
 S = [focal_points, angle_of_incidence[1:], directions]
 perm = list(itertools.product(*S))
 perm.extend(list(itertools.product(focal_points, [angle_of_incidence[0]])))
@@ -33,6 +33,7 @@ def generate_gcode():
 
 def write_order(filename):
     with open(filename, 'w', encoding = "utf-8") as f:
+        f.write('focal_points, angle_of_incidence, directions\n')
         for p in perm:
             f.write(','.join(p))
             f.write('\n')

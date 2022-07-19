@@ -4,7 +4,7 @@ This is a README file for generate_gcode.py
 
 ## SYNOPSIS:
 
-This program generates a randomized g-code script for an individual user 
+This program generates a randomized g-code script for an individual user
 
 ## DIRECTORY:
 
@@ -13,25 +13,46 @@ AirBender
 │   README.md
 └───scripts
 │   │   generate_gcode.py
+│   │   set_servo_angle.py
+│   │   uservo.py
 │   └───gcodes
 │   └───orders
 ```
 
 ## USAGE:
 
+### generate gcode
+
 ```sh
 python3 generate_gcode.py -idx <user index> -a <pointA coordinate(x,y)> -b <pointB coordinate(x,y)> -c <pointC coordinate(x,y)> -d <pointD coordinate(x,y)> -e <pointE coordinate(x,y)>
 ```
-	
+
 For example,
-if you want to generate the gcode file for user #6, 
+if you want to generate the gcode file for user #6,
 under scripts directory, run
 
 ```sh
 python3 generate_gcode.py -idx 6 -a 50 60 -b 40 50 -c 50 40 -d 60 50 -e 50 50
 ```
 
+### automate servo
+
+Modify the servo port, baud rate, and servo IDs in `set_servo_angle.py`.
+
+```sh
+python3 set_servo_angle.py -f <path to file>
+```
+
+For example,
+
+```sh
+python3 set_servo_angle.py -f ./orders/0_order.txt
+```
+
+The program pauses for 10 seconds per sample for the operator to fire the air jet and the user to fill out his/her answer. If the next focal point is different from the current point, then the pause time extends to seconds. You can modify this in line 43 & 45.
+
 #### Note: fill in the coordinate fields with the exact positions of the five focal points you measured earlier.
+
 #### Note: you can change the suffix for the output file by args '-gcode_out' and '-order_out'.
 
 ## OTHER NOTICES:

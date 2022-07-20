@@ -10,6 +10,7 @@ directions = ['0', '15', '30', '45', '60', '75', '90', '105', '120', '135', '150
 S = [focal_points, angle_of_incidence[1:], directions]
 perm = list(itertools.product(*S))
 perm.extend(list(itertools.product(focal_points, [angle_of_incidence[0]])))
+perm.extend(list(itertools.product(focal_points, [angle_of_incidence[0]])))
 gcode = []
 random.seed(user_index) # user index
 

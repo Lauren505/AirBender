@@ -35,6 +35,9 @@ under scripts directory, run
 python3 generate_gcode.py -idx 6 -a 50 60 -b 40 50 -c 50 40 -d 60 50 -e 50 50
 ```
 
+Fill in the coordinate fields with the exact positions of the five focal points you measured earlier.
+You can change the suffix for the output file by args '-gcode_out' and '-order_out'.
+
 ### automate servo
 
 Modify the servo port, baud rate, and servo IDs in `set_servo_angle.py`.
@@ -50,10 +53,6 @@ python3 set_servo_angle.py -f ./orders/0_order.txt
 ```
 
 The program pauses for 10 seconds per sample for the operator to fire the air jet and the user to fill out his/her answer. If the next focal point is different from the current point, then the pause time extends to seconds. You can modify this in line 43 & 45.
-
-#### Note: fill in the coordinate fields with the exact positions of the five focal points you measured earlier.
-
-#### Note: you can change the suffix for the output file by args '-gcode_out' and '-order_out'.
 
 ## OTHER NOTICES:
 

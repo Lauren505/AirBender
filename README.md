@@ -24,7 +24,7 @@ AirBender
 ### generate gcode
 
 ```sh
-python3 generate_gcode.py -idx <user index> -a <pointA coordinate(x,y)> -b <pointB coordinate(x,y)> -c <pointC coordinate(x,y)> -d <pointD coordinate(x,y)> -e <pointE coordinate(x,y)>
+python3 generate_gcode.py -idx <user index> -a <pointA coordinate(x,y)> -b <pointB coordinate(x,y)> -c <pointC coordinate(x,y)> -d <pointD coordinate(x,y)> -e <pointE coordinate(x,y)> -angle <angle of incidence>
 ```
 
 For example,
@@ -32,7 +32,7 @@ if you want to generate the gcode file for user #6,
 under scripts directory, run
 
 ```sh
-python3 generate_gcode.py -idx 6 -a 50 60 -b 40 50 -c 50 40 -d 60 50 -e 50 50
+python3 generate_gcode.py -idx 6 -a 50 60 -b 40 50 -c 50 40 -d 60 50 -e 50 50 -angle 30
 ```
 
 Fill in the coordinate fields with the exact positions of the five focal points you measured earlier.

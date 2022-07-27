@@ -29,18 +29,25 @@ def randomize(user_index, angle):
     print("list all permutations: \n", perm)
 
 def generate_gcode(angle):
-    prev_focal = perm[0][0]
-    coor = get_coor(prev_focal, angle, perm[0][2])
-    gcode.append(f"G0 X{coor[0]} Y{coor[1]} ;\n")
-    gcode.append(f"@pause {perm[0]} ")
-    for p in perm[1:]:
-        if (p[0]==prev_focal):
-            gcode.append(f"{p} ")
-        else:
-            prev_focal = p[0]
-            coor = get_coor(prev_focal, angle, p[2])
-            gcode.append(f";\nG0 X{coor[0]} Y{coor[1]} ;\n")
-            gcode.append(f"@pause {p} ")
+    global gcode
+    if angle==angle_of_incidence[2]:
+        for p in perm:
+            coor = get_coor(p[0], angle, p[2])
+            gcode.append(f"G0 X{coor[0]} Y{coor[1]} ;\n")
+            gcode.append(f"@pause {p} ;\n")
+    else:
+        prev_focal = perm[0][0]
+        coor = get_coor(prev_focal, angle, perm[0][2])
+        gcode.append(f"G0 X{coor[0]} Y{coor[1]} ;\n")
+        gcode.append(f"@pause {perm[0]} ")
+        for p in perm[1:]:
+            if (p[0]==prev_focal):
+                gcode.append(f"{p} ")
+            else:
+                prev_focal = p[0]
+                coor = get_coor(prev_focal, angle, p[2])
+                gcode.append(f";\nG0 X{coor[0]} Y{coor[1]} ;\n")
+                gcode.append(f"@pause {p} ")
 
 def get_coor(prev_focal, angle, dir):
     # 30 degree

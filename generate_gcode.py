@@ -45,7 +45,13 @@ def generate_gcode(angle):
 def get_coor(prev_focal, angle, dir):
     # 30 degree
     if angle==angle_of_incidence[2]:
-        coor = [coordinates[prev_focal][0]+offset(dir)[0], coordinates[prev_focal][1]+offset(dir)[1]]
+        x = coordinates[prev_focal][0]+offset(dir)[0]
+        y = coordinates[prev_focal][1]+offset(dir)[1]
+        if x>100: x=100
+        elif x<0: x=0
+        if y>100: y=100
+        elif y<0: y=0
+        coor = [x, y]
     # 60 & 90 degree
     else:
         coor = coordinates[prev_focal]

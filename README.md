@@ -62,6 +62,9 @@ Call using `python3 servo_controller.py -r <x> -i <y> -a <z>`
 -a [0,15,...,330,345] to set the rotational angle of the servo
 ```
 
+### data_parser.py
+Used for parsing user data for data collection. Requires two files 'order.txt' and 'data.txt' containing the sample order and sample data respectively. Output are 6 files: `'complete_data.txt'`, `'A_data.txt'`, `'B_data.txt'`, `'C_data.txt'`, `'D_data.txt'` and `'E_data.txt'` sorted by focal point and rotational angle.
+
 ## OTHER NOTICES:
 
 - the order is randomized using the user index as the random seed, so that the result stays the same for each user everytime you run the program.

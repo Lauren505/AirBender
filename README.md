@@ -54,6 +54,17 @@ python3 set_servo_angle.py -f ./orders/0_order.txt
 
 The program pauses for 10 seconds per sample for the operator to fire the air jet and the user to fill out his/her answer. If the next focal point is different from the current point, then the pause time extends to seconds. You can modify this in line 43 & 45.
 
+### servo_controller.py
+Call using `python3 servo_controller.py -r <x> -i <y> -a <z>`
+```
+-r [0,1] to indicate whether or not a previous servo offset must be compensated for (just call this after moving to an angle >= 270)
+-i [0,30,60,90] to set the incident angle of the servo
+-a [0,15,...,330,345] to set the rotational angle of the servo
+```
+
+### data_parser.py
+Used for parsing user data for data collection. Requires two files 'order.txt' and 'data.txt' containing the sample order and sample data respectively. Output are 6 files: `'complete_data.txt'`, `'A_data.txt'`, `'B_data.txt'`, `'C_data.txt'`, `'D_data.txt'` and `'E_data.txt'` sorted by focal point and rotational angle.
+
 ## OTHER NOTICES:
 
 - the order is randomized using the user index as the random seed, so that the result stays the same for each user everytime you run the program.

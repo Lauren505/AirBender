@@ -1,9 +1,12 @@
-from ast import arg
+from multiprocessing.connection import wait
 import serial
 from uservo import UartServoManager
 import argparse
+import os
+import sys
+import winsound
 
-SERVO_PORT_NAME =  'COM4'		
+SERVO_PORT_NAME =  'COM8'		
 SERVO_BAUDRATE = 115200			
 SERVO_1_ID = 3   # Angle of directionality
 SERVO_2_ID = 6   # Angle of incidence
@@ -46,11 +49,15 @@ incident_angles = {
 def resetOffset(uservo):
 	uservo.set_wheel_time(SERVO_1_ID, interval=2000, is_cw=False, mean_dps=287.5)
 
-# Example use setAngle(uservo, *DEG_0)
+def setOffset(uservo):
+	uservo.set_wheel_time(SERVO_1_ID, interval=2000, is_cw=True, mean_dps=287.5)
+
 def setAngle(uservo, angle, offset):
 	# Move the servo to the relative angle specified by the second parameter
-	uservo.set_servo_angle(SERVO_1_ID, angle, interval=0)
-	uservo.wait()
+	curr_angle = 15 * round(uservo.query_servo_angle(SERVO_1_ID) / 15)
+	if curr_angle != angle:
+		uservo.set_servo_angle(SERVO_1_ID, angle, interval=0)
+		uservo.wait()
 	
 	# If offset is set, move the servo an additional 90 degrees in the specified direction
 	if offset:
@@ -61,11 +68,16 @@ def setIncidentAngle(uservo, angle):
 	uservo.set_servo_angle(SERVO_2_ID, angle, interval=0)
 	uservo.wait()
 
+def waitForInput(message):
+	cmd = input(message)
+	while cmd != '':
+		cmd = input(message)
+
 if __name__=='__main__':
 	parser = argparse.ArgumentParser()
-	parser.add_argument('-r', '--reset_angle', type=str, nargs=1, default=['0'])
-	parser.add_argument('-i', '--incident_angle', type=int, nargs=1, default=[-1])
-	parser.add_argument('-a', '--angle', type=int, nargs=1, default=[180])
+	parser.add_argument('-s', '--set_angles', type=int, nargs=2, default=[-1, -1])
+	parser.add_argument('-f', '--file', type=str, nargs=1, default=[''])
+	parser.add_argument('-skip', '--skip', type=int, nargs=1, default=[-1])
 
 	args = parser.parse_args()
 	
@@ -74,14 +86,61 @@ if __name__=='__main__':
 						bytesize=8,timeout=0)
 	uservo = UartServoManager(uart, is_debug=True)
 
-	print(args.angle[0], args.reset_angle[0])
+	# If set flag is set, return servo to custom position specified by user
+	if not args.set_angles[0] < 0 and not args.set_angles[1] < 0:
+		if abs(incident_angles[args.set_angles[0]] - uservo.query_servo_angle(SERVO_2_ID)) > 2.0:
+			setIncidentAngle(uservo, incident_angles[args.set_angles[0]])
+		setAngle(uservo, *angles[args.set_angles[1]])
+		exit()
 
-	# IF PREVIOUS DEGREE >= 270 RESET THE OFFSET
-	if args.reset_angle[0] == '1':
-		resetOffset(uservo)
+	# Set the servo to initial resting state
+	setAngle(uservo, *angles[180])
 
-	if not args.incident_angle[0] < 0:
-		setIncidentAngle(uservo, incident_angles[args.incident_angle[0]])
+	# PROGRAM START
+	waitForInput('Press enter to start: ')
 
-	setAngle(uservo, *angles[args.angle[0]])
+	filename = args.file[0] + '_order.txt'
+	f = open(os.path.join(sys.path[0], 'orders', filename), encoding = "utf8")
+	
+	if args.skip[0] > 0:
+		for i in range(args.skip[0] + 1):
+			next(f)
+	else:
+		next(f) # Skip first line of file
+
+	sample_count = 0
+	for line in f:
+		sample = line.strip().split(',')
+		angle = int(sample[2])
+
+		print('\n' + str(sample_count % 40 + 1) + '# sample ' + str(sample))
+
+		# Rotate the servo to the right angle
+		print('Setting rotational angle to ' + str(angle) + ' degrees')
+		setAngle(uservo, *angles[angle])
+
+		# Optionally make manual servo angle adjustments in case of inacurracies
+		cmd = input("Manually adjust rotational angle? (y/n)")
+		while cmd != 'n':
+			if cmd == 'y':
+				angle = input("Enter rotational angle.")
+				setAngle(uservo, *angles[angle])
+			cmd = input("Manually adjust rotational angle? (y/n)")
+
+		# Notify participant
+		waitForInput('Press enter to notify participant: ')
+		winsound.Beep(1000, 600)  # Beep at 1000 Hz for 600 ms
+
+		# Continue to next sample
+		waitForInput('Press enter for the next sample: ')
+
+		# Reset the offset if previous angle >= 270
+		if angle >= 270:
+			print('\nResetting offset, please wait...')
+			resetOffset(uservo)
+			setAngle(uservo, *angles[180])
+
+		sample_count += 1
+
+	f.close()
 	

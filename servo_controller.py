@@ -6,10 +6,11 @@ import os
 import sys
 import winsound
 
-SERVO_PORT_NAME =  'COM8'		
+SERVO_PORT_NAME =  'COM13'		
 SERVO_BAUDRATE = 115200			
 SERVO_1_ID = 3   # Angle of directionality
 SERVO_2_ID = 6   # Angle of incidence
+DANGERZONE = False
 
 angles = {
 	0 : (-120, False), 
@@ -46,6 +47,9 @@ incident_angles = {
 	90 : 45
 }
 
+def getCurrentAngle(uservo):
+	return 15 * round(uservo.query_servo_angle(SERVO_1_ID) / 15)
+
 def resetOffset(uservo):
 	uservo.set_wheel_time(SERVO_1_ID, interval=2000, is_cw=False, mean_dps=287.5)
 
@@ -53,9 +57,18 @@ def setOffset(uservo):
 	uservo.set_wheel_time(SERVO_1_ID, interval=2000, is_cw=True, mean_dps=287.5)
 
 def setAngle(uservo, angle, offset):
+	global DANGERZONE
+	
+	print('Angle before rotation: ', getCurrentAngle(uservo))
+	
+	# Reset the offset if previous angle >= 270 (270 is mapped to 150 by the servo)
+	if DANGERZONE:
+		print('\nResetting offset, please wait...')
+		resetOffset(uservo)
+		DANGERZONE = False
+
 	# Move the servo to the relative angle specified by the second parameter
-	curr_angle = 15 * round(uservo.query_servo_angle(SERVO_1_ID) / 15)
-	if curr_angle != angle:
+	if getCurrentAngle(uservo) != angle:
 		uservo.set_servo_angle(SERVO_1_ID, angle, interval=0)
 		uservo.wait()
 	
@@ -63,6 +76,9 @@ def setAngle(uservo, angle, offset):
 	if offset:
 		# uservo.set_wheel_time(SERVO_1_ID, interval=2000, is_cw=(angle >= 0), mean_dps=287.5)
 		uservo.set_wheel_time(SERVO_1_ID, interval=2000, is_cw=True, mean_dps=287.5)
+		DANGERZONE = True
+
+	print('Angle after rotation: ', getCurrentAngle(uservo), DANGERZONE)
 
 def setIncidentAngle(uservo, angle):
 	uservo.set_servo_angle(SERVO_2_ID, angle, interval=0)
@@ -74,11 +90,11 @@ def waitForInput(message):
 		cmd = input(message)
 
 if __name__=='__main__':
+	### PROGRAM INIT ###
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-s', '--set_angles', type=int, nargs=2, default=[-1, -1])
 	parser.add_argument('-f', '--file', type=str, nargs=1, default=[''])
 	parser.add_argument('-skip', '--skip', type=int, nargs=1, default=[-1])
-
 	args = parser.parse_args()
 	
 	uart = serial.Serial(port=SERVO_PORT_NAME, baudrate=SERVO_BAUDRATE,\
@@ -93,10 +109,13 @@ if __name__=='__main__':
 		setAngle(uservo, *angles[args.set_angles[1]])
 		exit()
 
-	# Set the servo to initial resting state
+	# resetOffset(uservo)
+	# exit()
+
+	# Set the servo to neutral state
 	setAngle(uservo, *angles[180])
 
-	# PROGRAM START
+	### PROGRAM START ###
 	waitForInput('Press enter to start: ')
 
 	filename = args.file[0] + '_order.txt'
@@ -120,12 +139,14 @@ if __name__=='__main__':
 		setAngle(uservo, *angles[angle])
 
 		# Optionally make manual servo angle adjustments in case of inacurracies
-		cmd = input("Manually adjust rotational angle? (y/n)")
+		cmd = input('Manually adjust rotational angle? (y/n): ')
 		while cmd != 'n':
 			if cmd == 'y':
-				angle = input("Enter rotational angle.")
+				angle = int(input('Enter rotational angle: '))
 				setAngle(uservo, *angles[angle])
-			cmd = input("Manually adjust rotational angle? (y/n)")
+			if cmd == 'reset':
+				resetOffset(uservo)
+			cmd = input('Manually adjust rotational angle? (y/n): ')
 
 		# Notify participant
 		waitForInput('Press enter to notify participant: ')
@@ -133,12 +154,6 @@ if __name__=='__main__':
 
 		# Continue to next sample
 		waitForInput('Press enter for the next sample: ')
-
-		# Reset the offset if previous angle >= 270
-		if angle >= 270:
-			print('\nResetting offset, please wait...')
-			resetOffset(uservo)
-			setAngle(uservo, *angles[180])
 
 		sample_count += 1
 

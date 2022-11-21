@@ -5,11 +5,13 @@ import os
 import sys
 import winsound
 
-SERVO_PORT_NAME =  'COM13'		
+import time
+
+SERVO_PORT_NAME =  'COM28'		
 SERVO_BAUDRATE = 115200			
-SERVO_1_ID = 3   # Angle of directionality
-SERVO_2_ID = 6   # Angle of incidence
-DANGERZONE = False
+SERVO_1_ID = 3   	# Angle of directionality
+SERVO_2_ID = 6   	# Angle of incidence
+DANGERZONE = False	# Whether or not an offset has to be undone
 
 angles = {
 	0 : (-120, False), 
@@ -30,20 +32,26 @@ angles = {
 	225 : (105, False),
 	240 : (120, False),
 	255 : (135, False),
-	270 : (60, True),
+	# 270 : (60, True),
+	270 : (150, False),
 	285 : (75, True),
 	300 : (90, True),
 	315 : (105, True),
-	330 : (120, True),
-	345 : (135, True)
+	# 330 : (120, True),
+	330 : (-150, False),
+	# 345 : (135, True),
+	345 : (-135, False)
 }
 
 # 0 => PARALLEL, 90 => PERPENDICULAR
 incident_angles = {
 	0 : 135,
-	30 : 105,
-	60 : 75,
-	90 : 45
+	30 : 107,
+	# 30 : 105,
+	# 60 : 75,
+	60 : 82,
+	90 : 52,
+	# 90 : 45
 }
 
 # Get current servo angle rounded to the nearest multiple of 15 degrees
@@ -52,11 +60,13 @@ def getCurrentAngle(uservo):
 
 # Rotate servo 90 degrees counterclockwise
 def resetOffset(uservo):
-	uservo.set_wheel_time(SERVO_1_ID, interval=2000, is_cw=False, mean_dps=287.5, is_wait=True)
+	# uservo.set_wheel_time(SERVO_1_ID, interval=2000, is_cw=False, mean_dps=287.5, is_wait=True)
+	uservo.set_wheel_time(SERVO_1_ID, interval=1500, is_cw=False, mean_dps=500.0, is_wait=False)
 
 # Rotate servo 90 degrees clockwise
 def setOffset(uservo):
-	uservo.set_wheel_time(SERVO_1_ID, interval=2000, is_cw=True, mean_dps=287.5, is_wait=True)
+	# uservo.set_wheel_time(SERVO_1_ID, interval=2000, is_cw=True, mean_dps=287.5, is_wait=True)
+	uservo.set_wheel_time(SERVO_1_ID, interval=1500, is_cw=True, mean_dps=500.0, is_wait=False)
 
 # Set the rotational angle of the servo
 def setAngle(uservo, angle):
@@ -79,17 +89,6 @@ def waitForInput(message):
 def notify():
 	waitForInput('Press enter to notify participant: ')
 	winsound.Beep(1000, 600)  # Beep at 1000 Hz for 600 ms
-
-def manualInput():
-	# Optionally make manual servo angle adjustments in case of inacurracies
-	cmd = input('Manually adjust rotational angle? (y/n): ')
-	while cmd != 'n':
-		if cmd == 'y':
-			angle = int(input('Enter rotational angle: '))
-			setAngle(uservo, *angles[angle])
-		if cmd == 'reset':
-			resetOffset(uservo)
-		cmd = input('Manually adjust rotational angle? (y/n): ')
 
 if __name__=='__main__':
 	### PROGRAM INIT ###
@@ -136,38 +135,32 @@ if __name__=='__main__':
 	for line in f:
 		sample = line.strip().split(',')
 		target_angle = int(sample[2])
-		target_angle_mapped = angles[int(sample[2])][0]
-		offset = angles[int(sample[2])][1]
+		target_angle_mapped, offset = angles[target_angle]
 
 		print('\n' + str(sample_count % 60 + 1) + '# sample ' + str(sample))
-	
-		# Reset the offset if it was set previously
-		while DANGERZONE:
-			print('Resetting offset, please wait...')
-			resetOffset(uservo)
-			DANGERZONE = False
 
 		# Rotate the servo to the right angle
-		# print('Setting rotational angle to ' + str(target_angle) + ' degrees')
 		while(getCurrentAngle(uservo) != target_angle_mapped):
 			setAngle(uservo, target_angle_mapped)
 
-		# If offset is set, move the servo an additional 90 degrees in the specified direction
+		# Add and offset if the target angle is 285, 300 or 315
 		if offset:
-			print('Setting offset, please wait...')
-			# uservo.set_wheel_time(SERVO_1_ID, interval=2000, is_cw=(angle >= 0), mean_dps=287.5)
-			uservo.set_wheel_time(SERVO_1_ID, interval=2000, is_cw=True, mean_dps=287.5)
+			setOffset(uservo)
 			DANGERZONE = True
-
-		# manualInput()
 
 		print('Current angle: ', target_angle)
 		# notify()
 
 		# Continue to next sample
 		waitForInput('Press enter for the next sample: ')
+
+		# Reset the offset if it was set previously
+		if DANGERZONE:
+			print("Resetting offset")
+			resetOffset(uservo)
+			uservo.wait()
+			DANGERZONE = False
 	
 		sample_count += 1
 
 	f.close()
-	

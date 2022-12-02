@@ -7,7 +7,7 @@ import winsound
 
 import time
 
-SERVO_PORT_NAME =  'COM28'		
+SERVO_PORT_NAME =  'COM25'		
 SERVO_BAUDRATE = 115200			
 SERVO_1_ID = 3   	# Angle of directionality
 SERVO_2_ID = 6   	# Angle of incidence
@@ -140,13 +140,12 @@ if __name__=='__main__':
 		print('\n' + str(sample_count % 60 + 1) + '# sample ' + str(sample))
 
 		# Rotate the servo to the right angle
-		while(getCurrentAngle(uservo) != target_angle_mapped):
-			setAngle(uservo, target_angle_mapped)
+		# while(getCurrentAngle(uservo) != target_angle_mapped):
+		setAngle(uservo, target_angle_mapped)
 
 		# Add and offset if the target angle is 285, 300 or 315
 		if offset:
 			setOffset(uservo)
-			DANGERZONE = True
 
 		print('Current angle: ', target_angle)
 		# notify()
@@ -155,11 +154,11 @@ if __name__=='__main__':
 		waitForInput('Press enter for the next sample: ')
 
 		# Reset the offset if it was set previously
-		if DANGERZONE:
+		if offset:
 			print("Resetting offset")
 			resetOffset(uservo)
 			uservo.wait()
-			DANGERZONE = False
+			setAngle(uservo, angles[180][0])
 	
 		sample_count += 1
 
